@@ -190,7 +190,8 @@ output:
 
 def proj3(x,z,t):
     eps = 1e-16
-    x_trans = x/(abs(np.tan(1-t+t*abs(-1-z))*(np.tan(1+t/2)**(-1)))+eps)
+    #x_trans = x/(abs(np.tan(1-t+t*abs(-1-z))*(np.tan(1+t/2)**(-1)))+eps)
+    x_trans = x/(t*np.tan(1-t+t*abs(-1-z))+(1-t)*np.arctan(1))
     return(x_trans)
 
 
