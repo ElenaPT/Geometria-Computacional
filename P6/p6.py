@@ -41,7 +41,6 @@ output:
         ddq: vector de derivadas segundas
 '''
 def F(q):
-    k = 1
     ddq = -2*q*(q**2-1)
     return ddq
 
@@ -317,5 +316,73 @@ print("Area total Simpson =", areaTotalS_5)
 error = max(abs(areaTotalT-areaTotalT_5),abs(areaTotalS-areaTotalS_5))
 
 print("El error del area es ", error)
+
+
+
+
+#####################
+# Teorema de Liouville
+#####################
+
+
+'''
+Funcion que calcula el area encerrada por un conjunto de puntos
+
+input:
+    x : lista de primera coordenada de los puntos
+    y: lista de segunda coordenada
+
+output:
+    valor del área
+'''
+def PolyArea(x,y):
+    return 0.5*np.abs(np.dot(x,np.roll(y,1))-np.dot(y,np.roll(x,1)))
+
+
+#Generamos los puntos del borde de D0 ([0,1]x[0,1])
+x_d0 = []
+y_d0 = []
+for i in np.arange(0,1,0.1):
+    x_d0.append(i)
+    y_d0.append(0)
+for i in np.arange(0,1,0.1):
+    x_d0.append(1)
+    y_d0.append(i)    
+for i in np.arange(1,0,-0.1):
+    x_d0.append(i)
+    y_d0.append(1)
+for i in np.arange(1,-0.1,-0.1):
+    x_d0.append(0)
+    y_d0.append(i)
+    
+print(PolyArea(x_d0,y_d0))
+
+
+
+#Evolucionamos cada uno de los puntos a lo largo del tiempo.
+#Guardamos en (qt,pt) el valor del punto inicial en varios tiempos (0,1000,5000,9000)
+qt = []
+pt = []
+for i in range (0,len(x_d0)):   
+   q =  orb(10000,x_d0[i],2*y_d0[i],F=F, d=10**-4)
+   dq = deriv(q,y_d0[i]*2,10**-4)
+   p = dq/2
+   qt.append([q[0],q[1000],q[5000],q[9000]])
+   pt.append([p[0],p[1000],p[5000],p[9000]])
+
+
+
+fig, ax = plt.subplots(figsize=(5,5)) 
+plt.rcParams["legend.markerscale"] = 6
+ax.set_xlabel("q(t)", fontsize=12)
+ax.set_ylabel("p(t)", fontsize=12)
+plt.plot(qt, pt, '-')
+plt.show()   
+   
+
+#Mostramos que las áreas son (casi) constantes
+for i in range(0,len(qt[0])):
+    print(PolyArea(np.array(qt)[:,i],np.array(pt)[:,i]))
+
 
 
