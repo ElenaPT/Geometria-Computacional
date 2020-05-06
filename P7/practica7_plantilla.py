@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-Practica 7 - 
+Practica 7 - Transformacion Isometrica Afin
 
 Cristina Vilchez y Elena Perez
 """
@@ -22,18 +22,28 @@ os.getcwd()
 os.chdir(vuestra_ruta)
 
 
-"""
-Ejemplo para el apartado 1.
+#####################
 
-Modifica la figura 3D y/o cambia el color
-https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
-"""
+# EJERCICIO 1
 
+#####################
+
+
+#Nuestra figura a representar es un toro
+
+n=120
+theta = np.linspace(0, 2.*np.pi, n)
+phi = np.linspace(0, 2.*np.pi, n)
+theta, phi = np.meshgrid(theta, phi)
+c, a = 2, 1
+X = a * np.sin(theta)
+Y = (c + a*np.cos(theta)) * np.sin(phi)
+Z = (c + a*np.cos(theta)) * np.cos(phi)
 
 fig = plt.figure()
-ax = plt.axes(projection='3d')
-X, Y, Z = axes3d.get_test_data(0.05)
-cset = ax.contour(X, Y, Z, 20, extend3d=True,cmap = plt.cm.get_cmap('viridis'))
+ax = plt.axes(xlim=(-5,5), ylim=(-5,5),projection='3d')
+ax.set_zlim(-3,3)
+cset = ax.plot_surface(X, Y, Z, rstride=5, cstride=5, cmap = plt.cm.get_cmap('viridis'), edgecolors='w')
 ax.clabel(cset, fontsize=9, inline=1)
 plt.xlabel('X')
 plt.ylabel('Y')
@@ -41,13 +51,12 @@ plt.show()
 
 
 """
-Transformación para el segundo apartado
-
-NOTA: Para el primer aparado es necesario adaptar la función o crear otra similar
-pero teniendo en cuenta más dimensiones
+Funcion que aplica una transformacion afin a un sistema
+input:
+    x,y,z= coordenadas de los puntos del sistema - en vector unidimensional
+    M,v = parametros de la transformacion x' = M(x-c) + v
+    c = centroide del sistema
 """
-
-
 def transf1D(x,y,z,M, v=np.array([0,0,0]), c=np.array([0,0,0])):
     xt = np.empty(len(x))
     yt = np.empty(len(x))
@@ -58,6 +67,13 @@ def transf1D(x,y,z,M, v=np.array([0,0,0]), c=np.array([0,0,0])):
     return xt, yt, zt
 
 
+'''
+Funcion que calcula el centroide de un sistema
+input:
+    x,y,z= coordenadas de los puntos del sistema - en vector unidimensional
+output
+    coordenadas (x,y,z) del centroide
+'''
 def centroide(x,y,z):
     xc = 0
     yc = 0
@@ -68,11 +84,18 @@ def centroide(x,y,z):
         zc += z[i]
     return xc/len(x),yc/len(x),zc/len(x)
 
+
+'''
+Funcion que genera un fotograma para la animacion de una transformacion afin
+input:
+    t: tiempo del fotograma
+'''
 def animate(t):
     M = np.array([[np.cos(t*3*np.pi),-np.sin(t*3*np.pi),0],[np.sin(t*3*np.pi),np.cos(t*3*np.pi),0],[0,0,1]])
     v=np.array([d,d,0])*t
     
-    ax = plt.axes(xlim=(0,40), ylim=(0,40), projection='3d')
+    ax = plt.axes(xlim=(0,10), ylim=(0,10), projection='3d')
+    ax.set_zlim(-3,3)
     #ax.view_init(60, 30)
 
     XYZ = transf1D(x0, y0, z0, M=M, v=v, c=cent)
@@ -80,61 +103,70 @@ def animate(t):
     X = XYZ[0].reshape(120,120)
     Y = XYZ[1].reshape(120,120)
     Z = XYZ[2].reshape(120,120)
-    cset = ax.contour(X, Y, Z, 16, extend3d=True,cmap = plt.cm.get_cmap('viridis'))
+    cset = ax.plot_surface(X, Y, Z, rstride=5, cstride=5, cmap = plt.cm.get_cmap('viridis'))
     return ax,
 
 def init():
     return animate(0),
 
-
-
-x0 = X.flatten()
-y0 = Y.flatten()
-z0 = Z.flatten()
-
-cent = centroide(x0,y0,z0)
-
-######
-#Calculamos diametro mayor de nuestra figura
-######
-
+'''
+Funcion que calcula el diametro de una figura
+input:
+    x0,y0,z0= coordenadas de los puntos del sistema - en vector unidimensional
+'''
 def diam(x0,y0,z0):
 
-    # Find a convex hull in O(N log N)
+    #Calculamos los puntos de la envolvente convexa O(N log N)
     points = np.array([x0,y0,z0]).transpose()
-    
     hull = ConvexHull(points)
     
     # Extract the points forming the hull
     hullpoints = points[hull.vertices,:]
     
     fig = plt.figure()
-    ax = plt.axes(projection='3d')
-    cset = ax.scatter3D(hullpoints[:,0], hullpoints[:,1], hullpoints[:,2], cmap = plt.cm.get_cmap('viridis'))
+    
+    ax = plt.axes(xlim=(-5,5), ylim=(-5,5), projection='3d')
+    ax.set_zlim(-3,3)
+    cset = ax.scatter3D(hullpoints[:,0], hullpoints[:,1], hullpoints[:,2], color='r',edgecolors='w',zorder=3)
     ax.clabel(cset, fontsize=9, inline=1)
     
-    cset = ax.contour(x0, y0, z0, 120, extend3d=True,cmap = plt.cm.get_cmap('viridis'))
+    
+    
+
+    
+    X = x0.reshape(120,120)
+    Y = y0.reshape(120,120)
+    Z = z0.reshape(120,120)
+   #cset = ax.plot_surface(X, Y, Z, rstride=5, cstride=5, cmap = plt.cm.get_cmap('viridis'), edgecolors='w')
     ax.clabel(cset, fontsize=9, inline=1)
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.show()
     
     
-    # Naive way of finding the best pair in O(H^2) time if H is number of points on
-    # hull
+    # El diametro lo calculamos como la mayor distancia entre los puntos de la envolvente
     hdist = cdist(hullpoints, hullpoints, metric='euclidean')
-    
-    # Get the farthest apart points
     bestpair = np.unravel_index(hdist.argmax(), hdist.shape)
     
-    #Print them
     p1 = hullpoints[bestpair[0]]
     p2 = hullpoints[bestpair[1]]
     
     return np.sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2+(p1[2]-p2[2])**2)
     
 
-d = diam(x0,y0,z0)
+
+#Convertimos nuestros vectores de coordenadas en vectores unidimensionales
+#para poder utilizar las funciones anteriores
+x0 = X.flatten()
+y0 = Y.flatten()
+z0 = Z.flatten()
+
+#Calculamos centroide
+cent = centroide(x0,y0,z0)
+
+
+#Calculamos diametro mayor de nuestra figura. En este caso, sabemos que es 6
+d = 6
 
 animate(np.arange(0.1, 1,0.1)[5])
 plt.show()
@@ -142,14 +174,14 @@ plt.show()
 fig = plt.figure(figsize=(6,6))
 ani = animation.FuncAnimation(fig, animate, np.arange(0,1,0.05), init_func=init,
                               interval=20)
-ani.save("ejercicio3.gif", fps = 5) 
+ani.save("ejercicio1.gif", fps = 5) 
 
 
 
 
 #########################################
 
-# SEGUNDO APARTADO
+# EJERCICIO 2
 
 #########################################
 
